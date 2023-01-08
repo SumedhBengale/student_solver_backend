@@ -32,6 +32,8 @@ router.post('/api/ask', auth, questionController.createQuestion);
 
 router.post('/api/updateQuestion',auth ,student , questionController.updateQuestion);
 
+router.post('/api/downloadAttachments',auth, questionController.downloadAttachments);
+
 //Bid Routes -----------------------------------------------------------------
 
 router.post('/api/addBid',auth,teacher, questionController.addBid);

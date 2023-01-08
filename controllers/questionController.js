@@ -363,6 +363,47 @@ const questionController = {
         return res.status(201).json({message: 'Answer Accepted'});
 
 
+    },
+
+    async downloadAttachments(req, res, next){
+
+        //Validate Request --------------------------------------------------------------------------------------------
+
+        const questionSchema = Joi.object({
+            questionId: Joi.string().required(),
+        });
+
+        const { error } = questionSchema.validate(req.body);
+
+        if(error){
+            return next(error);
+        }
+
+        const { questionId } = req.body;
+
+        try{
+                
+                //Check if the question exists --------------------------------------------------------------------------------------------
+    
+                const attachments = await Question.findById(questionId).select('attachments');
+
+                if(!attachments){
+                    return next(CustomErrorHandler.notFound('Question does not have any attachments'));
+                }
+
+                //Send the attachment path to the client ----------------------------------------------------------------------------------
+
+                let attachmentsArray = [];
+                for(let i = 0; i < attachments.attachments.length; i++){
+                    attachmentsArray.push(attachments.attachments[i]);
+                }
+
+                return res.status(200).json({attachmentsArray});
+
+            }catch(err){
+                return next(err);
+            }
+
     }
 
 }
