@@ -21,6 +21,21 @@ class CustomErrorHandler extends Error{
     static notFound(message = 'Not found') {
         return new CustomErrorHandler(404, message);
     }
+
+    static serverError(message = 'Internal server error') {
+        return new CustomErrorHandler(500, message);
+    }
+
+    static badRequest(message = 'Bad request') {
+        return new CustomErrorHandler(400, message);
+    }
+
+    static notAccepted(message = 'Bid not accepted') {
+        return new CustomErrorHandler(400, message);
+    }
+
+
+    
     
 }
 

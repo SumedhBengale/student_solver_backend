@@ -9,7 +9,7 @@ const registerController = {
 
     async register(req, res, next){
         
-        // Validate the request body
+        // Validate the request body --------------------------------------------------------------------------------------------
 
         const schema = Joi.object().keys({
             name: Joi.string().min(5).max(30).required(),
@@ -24,7 +24,7 @@ const registerController = {
         if(error){
             return next(error);
         }
-        //Check if User already exists
+        //Check if User already exists --------------------------------------------------------------------------------------------
 
         try{
             const exist = await User.exists({email: req.body.email});
@@ -36,12 +36,12 @@ const registerController = {
             return next(error);
         }
 
-        //Hash the password
+        //Hash the password ------------------------------------------------------------------------------------------------------
         const { name, email, password } = req.body;
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        //Prepare the model
+        //Prepare the model ------------------------------------------------------------------------------------------------------
 
 
         const user = new User({
@@ -57,11 +57,11 @@ const registerController = {
             const result = await user.save();
             console.log(result)
 
-            //Generate JWT token
+            //Generate JWT token ------------------------------------------------------------------------------------------------
             access_token = JwtService.sign({_id: result._id, role: result.role})
             refresh_token = JwtService.sign({_id: result._id, role: result.role}, '1y', REFRESH_SECRET)
 
-            //Store the refresh token in the database
+            //Store the refresh token in the database ---------------------------------------------------------------------------
             await RefreshToken.create({token: refresh_token});
 
         }

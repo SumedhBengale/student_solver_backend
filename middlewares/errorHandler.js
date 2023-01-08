@@ -8,7 +8,7 @@ const errorHandler = (err, req, res, next) => {
     let data = {
         message: "Internal Server Error",
 
-        // Only show the original error message if we are in debug mode
+        // Only show the original error message if we are in debug mode ----------------------------------------------------
         ...(DEBUG_MODE === 'true' && { originalError: err.message })
     }
 

@@ -3,6 +3,7 @@ import { APP_PORT, MONGO_URI } from './config';
 import routes from './routes';
 import errorHandler from './middlewares/errorHandler';
 import mongoose from 'mongoose';
+import path from 'path';
 
 const app = express();
 
@@ -16,6 +17,9 @@ db.once('open', function() {
   console.log('Connected to database');
 });
 
+
+global.appRoot = path.resolve(__dirname);
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(routes);
 

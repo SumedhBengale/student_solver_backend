@@ -7,7 +7,7 @@ import { REFRESH_SECRET } from '../../config';
 
 const loginController = {
 
-    //Login the User
+    //Login the User ----------------------------------------------------------------------------
     async login(req, res, next) {
     
         const loginSchema = Joi.object().keys({
@@ -31,18 +31,18 @@ const loginController = {
 
             }
 
-            // Compare the password
+            // Compare the password with the hashed password in the database --------------------------------------------
 
             const match = await bcrypt.compare(req.body.password, user.password);
             if(!match){
                 return next(CustomErrorHandler.wrongCredentials('Wrong password'));
             }
 
-            // Generate token
+            // Generate token ------------------------------------------------------------------------------------------------
             const access_token = JwtService.sign({_id: user._id, role: user.role});
             const refresh_token = JwtService.sign({_id: user._id, role: user.role}, '1y', REFRESH_SECRET);
 
-            //Save the refresh token in the database
+            //Save the refresh token in the database ---------------------------------------------------------------
 
             await RefreshToken.create({ token: refresh_token });
 
@@ -58,7 +58,7 @@ const loginController = {
 
     async logout(req, res, next){
 
-        //Validation
+        //Validation of the request --------------------------------------------------------------------------------
         const refreshSchema = Joi.object().keys({
             refresh_token: Joi.string().required()
         });
@@ -69,7 +69,7 @@ const loginController = {
             return next(error);
         }
 
-        //Delete the refresh token from the database
+        //Delete the refresh token from the database --------------------------------------------------------------
 
         try{
 

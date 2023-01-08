@@ -9,7 +9,7 @@ const refreshController = {
 
     async refresh(req, res, next){
 
-        ///Validate the refresh token
+        ///Validate the refresh token --------------------------------------------------------------------------------------------
 
         const refreshSchema = Joi.object().keys({
             refresh_token: Joi.string().required()
@@ -21,7 +21,7 @@ const refreshController = {
             return next(error);
         }
 
-        //Check if the refresh token exists in the database
+        //Check if the refresh token exists in the database ---------------------------------------------------------------------
 
         let refreshtoken;
 
@@ -33,7 +33,7 @@ const refreshController = {
                 return next(CustomErrorHandler.unAuthorized('Invalid refresh token'));
             }
 
-            //Verify the refresh token
+            //Verify the refresh token --------------------------------------------------------------------------------------------
             let userId;
 
             try{
@@ -46,19 +46,19 @@ const refreshController = {
                 return next(new Error("Something went wrong "+ error.message));
             }
 
-            //Check if the user exists
+            //Check if the user exists --------------------------------------------------------------------------------------------
 
             const user = await User.findOne({_id: userId});
             if(!user){
                 return next(CustomErrorHandler.unAuthorized('No user found'));
             }
 
-            //Generate new access token
+            //Generate new access token --------------------------------------------------------------------------------------------
 
             const access_token = JwtService.sign({_id: user._id, role: user.role});
             const refresh_token = JwtService.sign({_id: user._id, role: user.role}, '1y', REFRESH_SECRET);
 
-            //Save the refresh token in the database
+            //Save the refresh token in the database ---------------------------------------------------------------------------
 
             await refresh_token.create({token: refresh_token});
 

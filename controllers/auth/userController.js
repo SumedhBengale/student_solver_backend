@@ -3,6 +3,8 @@ import CustomErrorHandler from "../../services/CustomErrorHandler";
 
 const userController = {
 
+    //Get the user profile --------------------------------------------------------------------------------------------
+
     async me(req, res, next){
         try{
             const user = await User.findOne({_id: req.user._id}).select('-password -updatedAt -__v');

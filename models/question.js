@@ -9,20 +9,23 @@ const questionSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    subject: {
+        type: String,
+        required: true,
+    },
     attachments: [
         {
             type: String,
-            required: true,
         }
     ],
-    user: {
+    studentId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
     },
     bids: [
         {
-            user: {
+            teacherId: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'User',
                 required: true,
@@ -35,7 +38,7 @@ const questionSchema = new mongoose.Schema({
                 type: Boolean,
                 default: false,
             },
-        }
+        },
     ],
     answer : {
         type: mongoose.Schema.Types.ObjectId,
