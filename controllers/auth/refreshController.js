@@ -60,7 +60,7 @@ const refreshController = {
 
             //Save the refresh token in the database ---------------------------------------------------------------------------
 
-            await refresh_token.create({token: refresh_token});
+            await refreshToken.create({token: refresh_token});
 
             res.json({access_token, refresh_token});
 
