@@ -1,3 +1,4 @@
+import { string } from 'joi';
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
@@ -21,6 +22,12 @@ const userSchema = new mongoose.Schema({
         enum: ['student', 'teacher'],
         default: 'student',
     },
+    //Array of Questions
+
+    questions: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Question',
+    }]
 }, { timestamps: true });
 
 export default mongoose.model('User', userSchema, 'users');

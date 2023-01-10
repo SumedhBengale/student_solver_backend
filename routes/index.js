@@ -7,7 +7,7 @@ import teacher from '../middlewares/teacher';
 
 const router = express.Router();
 
-import { registerController, loginController, userController, refreshController, questionController, answerController } from '../controllers';
+import { registerController, loginController, userController, refreshController, questionController, answerController, chatController } from '../controllers';
 
 router.get('/', (req, res) => {
     res.send('Hello World!');
@@ -30,6 +30,8 @@ router.post('/api/logout', auth, loginController.logout)
 
 router.post('/api/ask', auth, questionController.createQuestion);
 
+router.post('/api/myQuestions',auth, student, questionController.myQuestions)
+
 router.post('/api/updateQuestion',auth ,student , questionController.updateQuestion);
 
 router.post('/api/downloadAttachments',auth, questionController.downloadAttachments);
@@ -51,6 +53,16 @@ router.post('/api/deleteAnswer',auth, teacher, answerController.deleteAnswer);
 //Accept Answer Route ---------------------------------------------------------
 
 router.post('/api/acceptAnswer',auth, student, questionController.acceptAnswer);
+
+//Chat Routes -----------------------------------------------------------------
+
+router.post('/api/sendMessage',auth, chatController.sendMessage);
+
+router.post('/api/newChat',auth, chatController.newChat);
+
+router.post('/api/getMyChats',auth, chatController.getMyChats);
+
+router.post('/api/getChat',auth, chatController.getChat);
 
 
 

@@ -1,5 +1,5 @@
 import multer from 'multer';
-import { Question } from '../models';
+import { Question, User } from '../models';
 import path from 'path';
 import CustomErrorHandler from '../services/CustomErrorHandler';
 import fs from 'fs';
@@ -67,6 +67,20 @@ const questionController = {
                 attachments: paths,
             });
             await question.save();
+
+            //Add QuestionId to Questions Array in User Model ----------------------------------------------------------------------------
+
+                const update = await User
+                    .findByIdAndUpdate(studentId
+                        , { $push: { questions: question._id.toString() } }
+                        , { new: true }
+                    );
+
+                if(!update){
+                    return next(CustomErrorHandler.notFound('Question not found'));
+                }
+
+
             }catch(err){
                 //Delete the uploaded files --------------------------------------------------------------------------------------------
                 for(let i = 0; i < req.files.length; i++){
@@ -82,6 +96,44 @@ const questionController = {
             return res.status(201).json({message: 'Question Created'});
 
         });
+    },
+
+    async myQuestions(req, res, next){
+        //Validate Request --------------------------------------------------------------------------------------------
+
+        const questionSchema = Joi.object({
+            studentId: Joi.string().required(),
+        });
+
+        const { error } = questionSchema.validate(req.body);
+
+        if(error){
+        
+            return next(error);
+
+        }
+
+        const {studentId} = req.body;
+
+        try{
+
+            //Get all Questions from User
+            const questions = await User.findById(studentId).select('questions');
+            
+            //Get all Questions from Question Model and select name and description
+            let questionsArray = [];
+            for(let i = 0; i < questions.questions.length; i++){
+                questionsArray[i] = await Question.findById(questions.questions[i]).select('name description');
+            }
+            return res.send(questionsArray);
+
+
+        }catch(err){
+            return next(err);
+        }
+
+        return(CustomErrorHandler.notFound('No Questions Found'));
+
     },
 
     updateQuestion(req, res, next){
