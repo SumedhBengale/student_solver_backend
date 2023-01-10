@@ -28,7 +28,7 @@ router.post('/api/logout', auth, loginController.logout)
 
 //Question Routes -------------------------------------------------------------
 
-router.post('/api/ask', auth, questionController.createQuestion);
+router.post('/api/ask', auth, student, questionController.createQuestion);
 
 router.post('/api/myQuestions',auth, student, questionController.myQuestions)
 

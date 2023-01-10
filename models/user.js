@@ -1,5 +1,6 @@
 import { string } from 'joi';
 import mongoose from 'mongoose';
+import { Chat } from '.';
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -27,7 +28,11 @@ const userSchema = new mongoose.Schema({
     questions: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Question',
-    }]
+    }],
+    chats: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: Chat,
+    }],
 }, { timestamps: true });
 
 export default mongoose.model('User', userSchema, 'users');
