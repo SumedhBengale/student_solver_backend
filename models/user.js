@@ -23,6 +23,10 @@ const userSchema = new mongoose.Schema({
         enum: ['student', 'teacher'],
         default: 'student',
     },
+    token_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'RefreshToken',
+    },
     //Array of Questions
 
     questions: [{

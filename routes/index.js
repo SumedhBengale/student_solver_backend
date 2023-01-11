@@ -21,9 +21,9 @@ router.post('/api/login', loginController.login);
 
 router.get('/api/me',auth, userController.me)
 
-router.post('/api/refresh', refreshController.refresh)
+router.post('/api/refresh',auth, refreshController.refresh)
 
-router.post('/api/logout', auth, loginController.logout)
+router.post('/api/logout', loginController.logout)
 
 
 //Question Routes -------------------------------------------------------------

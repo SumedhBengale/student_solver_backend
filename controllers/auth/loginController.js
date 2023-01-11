@@ -44,7 +44,7 @@ const loginController = {
 
             //Save the refresh token in the database ---------------------------------------------------------------
 
-            await RefreshToken.create({ token: refresh_token });
+            const refreshToken = await RefreshToken.findByIdAndUpdate(user.token_id, {token: refresh_token});
 
             
             res.json({'access_token': access_token, 'refresh_token': refresh_token});
@@ -60,7 +60,7 @@ const loginController = {
 
         //Validation of the request --------------------------------------------------------------------------------
         const refreshSchema = Joi.object().keys({
-            refresh_token: Joi.string().required()
+            user_id: Joi.string().required(),
         });
 
         const { error } = refreshSchema.validate(req.body);
@@ -69,12 +69,15 @@ const loginController = {
             return next(error);
         }
 
-        //Delete the refresh token from the database --------------------------------------------------------------
+        const { user_id } = req.body;
 
         try{
 
-            await RefreshToken.deleteOne({ token: req.body.refresh_token });
+            const result = await RefreshToken.findOneAndUpdate({user_id: user_id}, {token: null});
 
+            if(!result){
+                return next(CustomErrorHandler.wrongCredentials('No user with this id'));
+            }
 
 
         }catch(error){

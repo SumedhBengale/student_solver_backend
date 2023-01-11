@@ -47,7 +47,8 @@ const registerController = {
         const user = new User({
             name,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            token_id: null,
         });
 
         let access_token;
@@ -55,14 +56,17 @@ const registerController = {
 
         try{
             const result = await user.save();
-            console.log(result)
 
             //Generate JWT token ------------------------------------------------------------------------------------------------
             access_token = JwtService.sign({_id: result._id, role: result.role})
             refresh_token = JwtService.sign({_id: result._id, role: result.role}, '1y', REFRESH_SECRET)
 
-            //Store the refresh token in the database ---------------------------------------------------------------------------
-            await RefreshToken.create({token: refresh_token});
+            //Store the refresh token in the database and its Id in the user data ---------------------------------------------------------
+            const token = await RefreshToken.create({user_id: user._id, token: refresh_token});
+            user.token_id = token._id;
+            await user.save();
+            
+
 
         }
         catch(error){
