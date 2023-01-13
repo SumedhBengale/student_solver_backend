@@ -3,3 +3,4 @@ export { default as RefreshToken } from './refreshToken.js';
 export { default as Question } from './question.js';
 export { default as Answer } from './answer.js';
 export { default as Chat } from './chat.js';
+export { default as Bid } from './bid.js';

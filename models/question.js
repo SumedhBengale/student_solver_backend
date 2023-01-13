@@ -23,23 +23,15 @@ const questionSchema = new mongoose.Schema({
         ref: 'User',
         required: true,
     },
-    bids: [
-        {
-            teacherId: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'User',
-                required: true,
-            },
-            amount: {
-                type: Number,
-                required: true,
-            },
-            accepted: {
-                type: Boolean,
-                default: false,
-            },
-        },
-    ],
+    bids: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Bid',
+    }],
+    acceptedBid: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Bid',
+        default: null,
+    },
     answer : {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Answer',

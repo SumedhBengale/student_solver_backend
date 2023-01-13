@@ -12,6 +12,8 @@ const teacher = (req, res, next) => {
             next();
         }
         else{
+            console.log(req.user.role)
+
             return next(CustomErrorHandler.unAuthorized('Your account is not authorized to access this route'));
         }
 

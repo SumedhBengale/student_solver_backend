@@ -8,7 +8,7 @@ import anybody from '../middlewares/anybody';
 
 const router = express.Router();
 
-import { registerController, loginController, userController, refreshController, questionController, answerController, chatController } from '../controllers';
+import { registerController, loginController, userController, refreshController, questionController, answerController, chatController, bidController } from '../controllers';
 
 router.get('/', (req, res) => {
     res.send('Hello World!');
@@ -41,11 +41,11 @@ router.post('/api/deleteQuestion',auth, anybody, questionController.deleteQuesti
 
 //Bid Routes -----------------------------------------------------------------
 
-router.post('/api/addBid',auth,teacher, questionController.addBid);
+router.post('/api/createBid',auth,teacher, bidController.createBid);
 
-router.post('/api/deleteBid',auth,teacher, questionController.deleteBid);
+router.post('/api/deleteBid',auth,teacher, bidController.deleteBid);
 
-router.post('/api/acceptBid',auth,student , questionController.acceptBid);
+router.post('/api/acceptBid',auth,student , bidController.acceptBid);
 
 //Answer Routes ---------------------------------------------------------------
 
