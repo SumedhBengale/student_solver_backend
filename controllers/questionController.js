@@ -31,13 +31,13 @@ const questionController = {
                 title: Joi.string().required(),
                 description: Joi.string().required(),
                 subject: Joi.string().required(),
-                studentId: Joi.string().required(),
+                // attachments: (req.body.attchments =='')? Joi.string() : Joi.array().items(),
+                attachments:(req.body.attachments == '') ? Joi.string().valid('')
+                                    : Joi.array().items(),
             });
 
             const { error } = questionSchema.validate(req.body);
-
             if(error){
-
                 //Delete the uploaded files --------------------------------------------------------------------------------------------
                 for(let i = 0; i < req.files.length; i++){
                     fs.unlink(`${appRoot}/${req.files[i].path}`, (err) => {
@@ -56,23 +56,21 @@ const questionController = {
             for(let i = 0; i < req.files.length; i++){
                 paths.push(req.files[i].path,);
             }
-
             console.log(paths);
             try{
             const question = new Question({
                 title,
                 description,
                 subject,
-                studentId,
+                "studentId": req.user._id,
                 attachments: paths,
             });
             await question.save();
 
             //Add QuestionId to Questions Array in User Model ----------------------------------------------------------------------------
-
-                const update = await User
-                    .findByIdAndUpdate(studentId
-                        , { $push: { questions: question._id.toString() } }
+            const update = await User
+                    .findByIdAndUpdate(req.user._id
+                        , { $push: { questions: question._id.toString()} }
                         , { new: true }
                     );
 
@@ -101,19 +99,10 @@ const questionController = {
     async myQuestions(req, res, next){
         //Validate Request --------------------------------------------------------------------------------------------
 
-        const questionSchema = Joi.object({
-            studentId: Joi.string().required(),
-        });
-
-        const { error } = questionSchema.validate(req.body);
-
-        if(error){
         
-            return next(error);
 
-        }
-
-        const {studentId} = req.body;
+        const studentId = req.user._id;
+        console.log(studentId);
 
         try{
 
@@ -132,8 +121,6 @@ const questionController = {
             return next(err);
         }
 
-        return(CustomErrorHandler.notFound('No Questions Found'));
-
     },
 
     updateQuestion(req, res, next){
@@ -151,7 +138,9 @@ const questionController = {
                 title: Joi.string(),
                 description: Joi.string(),
                 subject: Joi.string(),
-                studentId: Joi.string()
+                studentId: Joi.string(),
+                attachments:(req.body.attachments == '') ? Joi.string().valid('')
+                                                         : Joi.array().items(),
             });
 
             const { error } = questionSchema.validate(req.body);

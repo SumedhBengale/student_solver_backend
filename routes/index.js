@@ -2,6 +2,7 @@ import express from 'express';
 import auth from '../middlewares/auth';
 import student from '../middlewares/student';
 import teacher from '../middlewares/teacher';
+import anybody from '../middlewares/anybody';
 
 
 
@@ -28,11 +29,11 @@ router.post('/api/logout', loginController.logout)
 
 //Question Routes -------------------------------------------------------------
 
-router.post('/api/ask', auth, student, questionController.createQuestion);
+router.post('/api/ask', auth, anybody, questionController.createQuestion);
 
-router.post('/api/myQuestions',auth, student, questionController.myQuestions)
+router.get('/api/myQuestions',auth, anybody, questionController.myQuestions);
 
-router.post('/api/updateQuestion',auth ,student , questionController.updateQuestion);
+router.post('/api/updateQuestion',auth , anybody, questionController.updateQuestion);
 
 router.post('/api/downloadAttachments',auth, questionController.downloadAttachments);
 
