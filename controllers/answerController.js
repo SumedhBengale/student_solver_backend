@@ -30,7 +30,8 @@ const answerController = {
                 title: Joi.string().required(),
                 description: Joi.string().required(),
                 questionId: Joi.string().required(),
-                teacherId: Joi.string().required(),
+                attachments:(req.body.attachments == '') ? Joi.string().valid('')
+                                                         : Joi.array().items(),
             });
 
             const { error } = answerSchema.validate(req.body);
@@ -47,34 +48,14 @@ const answerController = {
                 return next(error);
             }
 
-            //Check if bid with teacherId is accepted --------------------------------------------------------------------------------------------
-            const bids = await Question.findById(req.body.questionId).select('bids');
-            
-            const acceptedBid = bids.bids.find(bid => bid.teacherId == req.body.teacherId && bid.accepted == true);
-
-            if(!acceptedBid){
-                return next(CustomErrorHandler.notAccepted('Your bid is not accepted yet'));
-            }
-
-            //Create the answer --------------------------------------------------------------------------------------------
 
             const { title, description, questionId } = req.body;
 
-            let paths = [];
-
-            for(let i = 0; i < req.files.length; i++){
-                paths.push(req.files[i].path);
-            }
-
-            console.log(paths);
-
             try{
 
-                //Check if the answer for the question already exists --------------------------------------------------------------------------------------------
+                const question = await Question.findById(questionId);
 
-                const exists = await Answer.findOne({questionId: req.body.questionId});
-
-                if(exists){
+                if(!question){
                     //Delete the uploaded files --------------------------------------------------------------------------------------------
                     for(let i = 0; i < req.files.length; i++){
                         fs.unlink(`${appRoot}/${req.files[i].path}`, (err) => {
@@ -83,18 +64,12 @@ const answerController = {
                             }
                         });
                     }
-
-                    return next(CustomErrorHandler.alreadyExists('Answer for this question already exists'));
+                    return next(CustomErrorHandler.notFound('Question not found'));
                 }
 
-                const answer = new Answer({
-                    title,
-                    description,
-                    questionId,
-                    attachments: paths,
-                });
-                await answer.save();
-                }catch(err){
+                //Check if the question has already been answered -------------------------------------------------------------------
+
+                if(question.answer){
                     //Delete the uploaded files --------------------------------------------------------------------------------------------
                     for(let i = 0; i < req.files.length; i++){
                         fs.unlink(`${appRoot}/${req.files[i].path}`, (err) => {
@@ -103,14 +78,18 @@ const answerController = {
                             }
                         });
                     }
-    
-                    return next(err);
+                    return next(CustomErrorHandler.alreadyExists('Question already answered'));
                 }
-                return res.status(201).json({message: 'Answer Created'});
 
+                //Check if the user's bid on the question is accepted ----------------------------------------------------------------
 
-        });
-    },
+                const bid = question.bids.find(bid => bid.user.toString() === req.user._id.toString());
+
+        }catch(err){
+            return next(err);
+        }
+    })
+},
 
     async deleteAnswer(req, res, next){
 

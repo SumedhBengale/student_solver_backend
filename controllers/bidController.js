@@ -178,6 +178,13 @@ const bidController = {
 
             await bid.save();
 
+            //Update the question with the new bid -----------------------------------------------------------------------
+
+            question.acceptedBid = bidId;
+
+            await question.save();
+
+
 
         }catch(err){
             return next(err);
