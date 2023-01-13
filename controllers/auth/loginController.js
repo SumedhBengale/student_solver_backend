@@ -23,6 +23,7 @@ const loginController = {
 
         try{
 
+            // Check if the user exists in the database ------------------------------------------------------------
             const user = await User.findOne({ email: req.body.email });
 
             if(!user){
@@ -69,10 +70,12 @@ const loginController = {
             return next(error);
         }
 
+        //Check if the refresh token exists in the database ---------------------------------------------------------
+
         const { user_id } = req.body;
 
         try{
-
+            //Delete the refresh token from the database ------------------------------------------------------------
             const result = await RefreshToken.findOneAndUpdate({user_id: user_id}, {token: null});
 
             if(!result){

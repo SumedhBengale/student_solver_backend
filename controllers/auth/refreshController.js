@@ -29,7 +29,7 @@ const refreshController = {
             refreshtoken = await RefreshToken.findOne({token:req.body.refresh_token});
         
             if(!refreshtoken){
-                return next(CustomErrorHandler.unAuthorized('Invalid refresh token'));
+                return next(CustomErrorHandler.unAuthorized('refresh token not in database'));
             }
 
             //Verify the refresh token --------------------------------------------------------------------------------------------

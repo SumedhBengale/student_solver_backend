@@ -154,7 +154,7 @@ const bidController = {
 
             //Check if the question in the bid belongs to the user ------------------------------------------------------
 
-            const question = await Question.findOne({_id: bid.questionId});
+            const question = await Question.findByID(bid.questionId);
 
             if(question.studentId.toString() !== req.user._id.toString()){
                 return next(CustomErrorHandler.unAuthorized('You are not authorized to accept this bid'));

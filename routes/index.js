@@ -45,7 +45,7 @@ router.post('/api/createBid',auth,teacher, bidController.createBid);
 
 router.post('/api/deleteBid',auth,teacher, bidController.deleteBid);
 
-router.post('/api/acceptBid',auth,student , bidController.acceptBid);
+router.post('/api/acceptBid',auth,anybody , bidController.acceptBid);
 
 //Answer Routes ---------------------------------------------------------------
 
@@ -55,7 +55,7 @@ router.post('/api/deleteAnswer',auth, teacher, answerController.deleteAnswer);
 
 //Accept Answer Route ---------------------------------------------------------
 
-router.post('/api/acceptAnswer',auth, student, questionController.acceptAnswer);
+router.post('/api/acceptAnswer',auth, anybody, questionController.acceptAnswer);
 
 //Chat Routes -----------------------------------------------------------------
 
