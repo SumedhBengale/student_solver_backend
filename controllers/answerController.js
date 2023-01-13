@@ -2,7 +2,7 @@ import multer from 'multer';
 import fs from 'fs';
 import Joi from 'joi';
 import path from 'path';
-import { Answer, Question } from '../models';
+import { Answer, Bid, Question } from '../models';
 import CustomErrorHandler from '../services/CustomErrorHandler';
 
 const storage = multer.diskStorage({
@@ -16,78 +16,104 @@ const handleMultipartData = multer({ storage, limits: { fileSize: 1000000 * 10 }
 
 
 const answerController = {
-
+    deleteFiles(files){
+        for(let i = 0; i < files.length; i++){
+            fs.unlink(`${appRoot}/${files[i].path}`, (err) => {
+                if(err){
+                    return next(CustomErrorHandler.serverError(err.message));
+                }
+            });
+        }
+    },
 
     async answerQuestion(req, res, next){
-            console.log(req.files)
+        console.log(req.files)
 
-            handleMultipartData(req, res, async (err) => {
+        handleMultipartData(req, res, async (err) => {
 
 
-            //validate the request --------------------------------------------------------------------------------------------
+        //validate the request --------------------------------------------------------------------------------------------
 
-            const answerSchema = Joi.object({
-                title: Joi.string().required(),
-                description: Joi.string().required(),
-                questionId: Joi.string().required(),
-                attachments:(req.body.attachments == '') ? Joi.string().valid('')
-                                                         : Joi.array().items(),
-            });
+        const answerSchema = Joi.object({
+            title: Joi.string().required(),
+            description: Joi.string().required(),
+            bidId: Joi.string().required(),
+            attachments:(req.body.attachments == '') ? Joi.string().valid('')
+                                                        : Joi.array().items(),
+        });
 
-            const { error } = answerSchema.validate(req.body);
+        const { error } = answerSchema.validate(req.body);
 
-            if(error){
+        if(error){
+            //Delete the uploaded files --------------------------------------------------------------------------------------------
+            deleteFiles(req.files);
+            return next(error);
+        }
+
+        try {
+            const { title, description, bidId } = req.body;
+
+            //Check if the bid exists and is accepted ---------------------------------------------------------------------
+
+            const bid = await Bid.findById(bidId);
+
+            if(!bid || !bid.accepted){
                 //Delete the uploaded files --------------------------------------------------------------------------------------------
-                for(let i = 0; i < req.files.length; i++){
-                    fs.unlink(`${appRoot}/${req.files[i].path}`, (err) => {
-                        if(err){
-                            return next(CustomErrorHandler.serverError(err.message));
-                        }
-                    });
+                deleteFiles(req.files);
+                if(!bid) {
+                    return next(CustomErrorHandler.notFound('Bid not found'));
                 }
-                return next(error);
+                else if(!bid.accepted) {
+                    return next(CustomErrorHandler.badRequest('Bid not accepted'));
+                }
             }
 
+            //Check if the bid belongs to the user ----------------------------------------------------------------------
 
-            const { title, description, questionId } = req.body;
+            if(bid.user.toString() !== req.user._id.toString()){
+                //Delete the uploaded files --------------------------------------------------------------------------------------------
+                deleteFiles(req.files);
+                return next(CustomErrorHandler.unAuthorized('You are not authorized to answer this question'));
+            }
 
-            try{
+            //Check if the question has already been answered ------------------------------------------------------------------
 
-                const question = await Question.findById(questionId);
+            const question = await Question.findById(bid.questionId);
 
-                if(!question){
-                    //Delete the uploaded files --------------------------------------------------------------------------------------------
-                    for(let i = 0; i < req.files.length; i++){
-                        fs.unlink(`${appRoot}/${req.files[i].path}`, (err) => {
-                            if(err){
-                                return next(CustomErrorHandler.serverError(err.message));
-                            }
-                        });
-                    }
-                    return next(CustomErrorHandler.notFound('Question not found'));
+            if(question.answer){
+                //Delete the uploaded files --------------------------------------------------------------------------------------------
+                deleteFiles(req.files);
+                return next(CustomErrorHandler.badRequest('Question already answered'));
+            }
+
+            //Create the answer ------------------------------------------------------------------------------------------------
+
+            let paths = [];
+                for(let i = 0; i < req.files.length; i++){
+                    paths.push(req.files[i].path,);
                 }
 
-                //Check if the question has already been answered -------------------------------------------------------------------
+            const newAnswer = new Answer({
+                title,
+                description,
+                attachments: paths,
+                bidId,
+                teacherId: req.user
+            });
 
-                if(question.answer){
-                    //Delete the uploaded files --------------------------------------------------------------------------------------------
-                    for(let i = 0; i < req.files.length; i++){
-                        fs.unlink(`${appRoot}/${req.files[i].path}`, (err) => {
-                            if(err){
-                                return next(CustomErrorHandler.serverError(err.message));
-                            }
-                        });
-                    }
-                    return next(CustomErrorHandler.alreadyExists('Question already answered'));
-                }
+            const savedAnswer = await newAnswer.save();
 
-                //Check if the user's bid on the question is accepted ----------------------------------------------------------------
+            //Update the question with the new answer ------------------------------------------------------------------------------
 
-                const bid = question.bids.find(bid => bid.user.toString() === req.user._id.toString());
+            question.answer = savedAnswer._id;
+
+            await question.save();
 
         }catch(err){
             return next(err);
         }
+
+        return res.status(200).json({message: 'Answer submitted'});
     })
 },
 
@@ -119,14 +145,7 @@ const answerController = {
             await answer.deleteOne();
 
             //Delete the files ------------------------------------------------------------------------------------------------
-
-            for(let i = 0; i < answer.attachments.length; i++){
-                fs.unlink(`${appRoot}/${answer.attachments[i]}`, (err) => {
-                    if(err){
-                        return next(CustomErrorHandler.serverError(err.message));
-                    }
-                });
-            }
+            deleteFiles(req.files);
         }catch(err){
             return next(err);
         }

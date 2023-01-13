@@ -9,16 +9,26 @@ const answerSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    questionId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Question',
-        required: true,
-    },
     attachments: [
         {
             type: String,
         }
     ],
+    teacherId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+
+    },
+    bidId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Bid',
+        required: true,
+    },
+    accepted: {
+        type: Boolean,
+        default: false
+    }
 });
 
 export default mongoose.model('Answer', answerSchema, 'answers');

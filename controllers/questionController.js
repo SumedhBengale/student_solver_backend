@@ -1,5 +1,5 @@
 import multer from 'multer';
-import { Question, User } from '../models';
+import { Question, User, Answer } from '../models';
 import path from 'path';
 import CustomErrorHandler from '../services/CustomErrorHandler';
 import fs from 'fs';
@@ -15,6 +15,18 @@ const storage = multer.diskStorage({
 const handleMultipartData = multer({ storage, limits: { fileSize: 1000000 * 10 } }).array('attachments', 10);  // 10MB max file size
 
 const questionController = {
+
+    deleteFiles(files){
+
+        for(let i = 0; i < files.length; i++){
+            fs.unlink(`${appRoot}/${files[i].path}`, (err) => {
+                if(err){
+                    return next(CustomErrorHandler.serverError(err.message));
+                }
+            });
+        }
+
+    },
 
     async createQuestion(req, res, next){
 
@@ -39,13 +51,7 @@ const questionController = {
             const { error } = questionSchema.validate(req.body);
             if(error){
                 //Delete the uploaded files --------------------------------------------------------------------------------------------
-                for(let i = 0; i < req.files.length; i++){
-                    fs.unlink(`${appRoot}/${req.files[i].path}`, (err) => {
-                        if(err){
-                            return next(CustomErrorHandler.serverError(err.message));
-                        }
-                    });
-                }
+                deleteFiles(req.files);
                 return next(error);
             }
 
@@ -81,14 +87,7 @@ const questionController = {
 
             }catch(err){
                 //Delete the uploaded files --------------------------------------------------------------------------------------------
-                for(let i = 0; i < req.files.length; i++){
-                    fs.unlink(`${appRoot}/${req.files[i].path}`, (err) => {
-                        if(err){
-                            return next(CustomErrorHandler.serverError(err.message));
-                        }
-                    });
-                }
-
+                deleteFiles(req.files);
                 return next(err);
             }
             return res.status(201).json({message: 'Question Created'});
@@ -125,6 +124,7 @@ const questionController = {
 
     updateQuestion(req, res, next){
 
+
         handleMultipartData(req, res, async (err) => {
 
             if(err){
@@ -147,13 +147,7 @@ const questionController = {
 
             if(error){
                 //Delete the uploaded files --------------------------------------------------------------------------------------------
-                for(let i = 0; i < req.files.length; i++){
-                    fs.unlink(`${appRoot}/${req.files[i].path}`, (err) => {
-                        if(err){
-                            return next(CustomErrorHandler.serverError(err.message));
-                        }
-                    });
-                }
+                deleteFiles(req.files);
                 return next(error);
             }
 
@@ -225,6 +219,10 @@ const questionController = {
 
                     await User.findByIdAndUpdate(req.user._id, { $pull: { questions: id } }, { new: true });
 
+                    //Delete the files from the server -------------------------------------------------------------------
+
+                    deleteFiles(req.files);
+
             }catch(err){
                 return next(err);
             }
@@ -239,7 +237,6 @@ const questionController = {
 
         const questionSchema = Joi.object({
             questionId: Joi.string().required(),
-            answerId: Joi.string().required(),
         });
 
         const { error } = questionSchema.validate(req.body);
@@ -248,26 +245,44 @@ const questionController = {
             return next(error);
         }
 
-        const { questionId, answerId } = req.body;
+        const { questionId } = req.body;
 
         try{
 
-            //Check if an answer has already been accepted --------------------------------------------------------------------------------------------
-
-            const question = await Question.findById(questionId).select('answer');
-
-            if(question.answer != null){
-                return next(CustomErrorHandler.alreadyExists('Question already has an accepted answer'));
+            const question = await Question.findById(questionId);
+            if(!question){
+                return next(CustomErrorHandler.notFound('Question not found'));
             }
 
-            //Save the answer --------------------------------------------------------------------------------------------
+            if(question.studentId.toString() !== req.user._id.toString()){
+                return next(CustomErrorHandler.unauthorized('You are not allowed to accept this answer'));
+            }
 
-            const update = await Question.findByIdAndUpdate(questionId, {
-                answer: answerId
-            })
+            //Check if question has an answer --------------------------------------------------------------------------------------------
+
+            if(!question.answer){
+                return next(CustomErrorHandler.notFound('Question does not have an answer'));
+            }
+
+            //Check if the answer is already accepted --------------------------------------------------------------------------------------------
+
+            const answer = await Answer.findById(question.answer);
+
+            if(answer.accepted){
+                return next(CustomErrorHandler.badRequest('Answer is already accepted'));
+            }
+
+            // TODO: Send the payment to the tutor --------------------------------------------------------------------------------------------
+            // This is where I want to send the payment to the tutor --------------------------------------------------------------------------
+
+
+            //Accept the answer ------------------------------------------------------------------------------------------------------------------
+
+
+            const update = await answer.updateOne({accepted: true});
 
             if(!update){
-                return next(CustomErrorHandler.notFound('Question not found'));
+                return next(CustomErrorHandler.notFound('Answer not found'));
             }
 
 
