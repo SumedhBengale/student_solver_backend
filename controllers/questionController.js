@@ -191,6 +191,48 @@ const questionController = {
         });
     },
 
+    async deleteQuestion(req, res, next){
+            
+            //Validate Request --------------------------------------------------------------------------------------------
+    
+            const questionSchema = Joi.object({
+                id: Joi.string().required(),
+            });
+    
+            const { error } = questionSchema.validate(req.body);
+    
+            if(error){
+                return next(error);
+            }
+            
+            //Delete the Question if the user is the owner ----------------------------------------------------------------
+
+            const { id } = req.body;
+            try{
+                    
+                    const question = await Question.findById(id);
+                    if(!question){
+                        return next(CustomErrorHandler.notFound('Question not found'));
+                    }
+
+                    if(question.studentId.toString() !== req.user._id.toString()){
+                        return next(CustomErrorHandler.unauthorized('You are not allowed to delete this question'));
+                    }
+
+                    await Question.findByIdAndDelete(id);
+
+                    //Delete the question from the user model -------------------------------------------------------------
+
+                    await User.findByIdAndUpdate(req.user._id, { $pull: { questions: id } }, { new: true });
+
+            }catch(err){
+                return next(err);
+            }
+
+            return res.status(201).json({message: 'Question Deleted'});
+        
+    },
+
     async addBid(req, res, next){
 
         //Validate Request --------------------------------------------------------------------------------------------

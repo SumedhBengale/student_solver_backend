@@ -37,6 +37,8 @@ router.post('/api/updateQuestion',auth , anybody, questionController.updateQuest
 
 router.post('/api/downloadAttachments',auth, questionController.downloadAttachments);
 
+router.post('/api/deleteQuestion',auth, anybody, questionController.deleteQuestion);
+
 //Bid Routes -----------------------------------------------------------------
 
 router.post('/api/addBid',auth,teacher, questionController.addBid);
