@@ -46,7 +46,7 @@ const answerController = {
 
         if(error){
             //Delete the uploaded files --------------------------------------------------------------------------------------------
-            deleteFiles(req.files);
+            answerController.deleteFiles(req.files);
             return next(error);
         }
 
@@ -59,7 +59,7 @@ const answerController = {
 
             if(!bid || !bid.accepted){
                 //Delete the uploaded files --------------------------------------------------------------------------------------------
-                deleteFiles(req.files);
+                answerController.deleteFiles(req.files);
                 if(!bid) {
                     return next(CustomErrorHandler.notFound('Bid not found'));
                 }
@@ -72,7 +72,7 @@ const answerController = {
 
             if(bid.user.toString() !== req.user._id.toString()){
                 //Delete the uploaded files --------------------------------------------------------------------------------------------
-                deleteFiles(req.files);
+                answerController.deleteFiles(req.files);
                 return next(CustomErrorHandler.unAuthorized('You are not authorized to answer this question'));
             }
 
@@ -82,7 +82,7 @@ const answerController = {
 
             if(question.answer){
                 //Delete the uploaded files --------------------------------------------------------------------------------------------
-                deleteFiles(req.files);
+                answerController.deleteFiles(req.files);
                 return next(CustomErrorHandler.badRequest('Question already answered'));
             }
 
@@ -145,12 +145,59 @@ const answerController = {
             await answer.deleteOne();
 
             //Delete the files ------------------------------------------------------------------------------------------------
-            deleteFiles(req.files);
+            answerController.deleteFiles(req.files);
         }catch(err){
             return next(err);
         }
 
         return res.status(200).json({message: 'Answer deleted'});
+
+    },
+
+    async downloadAttachments(req, res, next){
+    
+        //Validate the request --------------------------------------------------------------------------------------------
+
+        const answerSchema = Joi.object({
+            questionId: Joi.string().required(),
+        });
+
+        const { error } = answerSchema.validate(req.body);
+
+        if(error){
+            return next(error);
+        }
+
+        try{
+            //Check if the question exists, it belongs to the user and payment is made ---------------------------------------------------------------------------------------
+
+            const question = await Question.findById(req.body.questionId);
+
+            if(!question){
+                return next(CustomErrorHandler.notFound('Question not found'));
+            }
+
+            if(question.user.toString() !== req.user._id.toString()){
+                return next(CustomErrorHandler.unAuthorized('You are not authorized to download attachments'));
+            }
+
+            if(!question.paymentMade){
+                return next(CustomErrorHandler.badRequest('Payment not made'));
+            }
+
+            //Check if the answer exists ---------------------------------------------------------------------------------------
+
+            const answer = await Answer.findById(question.answer)
+
+            if(!answer){
+                return next(CustomErrorHandler.notFound('Answer not found'));
+            }
+        }catch(err){
+            return next(err);
+        }
+
+        res.send(answer.attachments)
+
 
     }
 

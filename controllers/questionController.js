@@ -51,7 +51,7 @@ const questionController = {
             const { error } = questionSchema.validate(req.body);
             if(error){
                 //Delete the uploaded files --------------------------------------------------------------------------------------------
-                deleteFiles(req.files);
+                questionController.deleteFiles(req.files);
                 return next(error);
             }
 
@@ -87,7 +87,7 @@ const questionController = {
 
             }catch(err){
                 //Delete the uploaded files --------------------------------------------------------------------------------------------
-                deleteFiles(req.files);
+                questionController.deleteFiles(req.files);
                 return next(err);
             }
             return res.status(201).json({message: 'Question Created'});
@@ -147,7 +147,7 @@ const questionController = {
 
             if(error){
                 //Delete the uploaded files --------------------------------------------------------------------------------------------
-                deleteFiles(req.files);
+                questionController.deleteFiles(req.files);
                 return next(error);
             }
 
@@ -221,7 +221,7 @@ const questionController = {
 
                     //Delete the files from the server -------------------------------------------------------------------
 
-                    deleteFiles(req.files);
+                    questionController.deleteFiles(req.files);
 
             }catch(err){
                 return next(err);
@@ -274,7 +274,7 @@ const questionController = {
 
             // TODO: Send the payment to the tutor --------------------------------------------------------------------------------------------
             // This is where I want to send the payment to the tutor --------------------------------------------------------------------------
-
+            question.paymentMade = true;
 
             //Accept the answer ------------------------------------------------------------------------------------------------------------------
 

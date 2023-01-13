@@ -32,6 +32,10 @@ const questionSchema = new mongoose.Schema({
         ref: 'Bid',
         default: null,
     },
+    paymentMade: {
+        type: Boolean,
+        default: false,
+    },
     answer : {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Answer',

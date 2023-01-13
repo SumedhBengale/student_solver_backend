@@ -53,6 +53,8 @@ router.post('/api/answerQuestion',auth,teacher, answerController.answerQuestion)
 
 router.post('/api/deleteAnswer',auth, teacher, answerController.deleteAnswer);
 
+router.post('/api/downloadAnswer',auth, student, answerController.downloadAttachments);
+
 //Accept Answer Route ---------------------------------------------------------
 
 router.post('/api/acceptAnswer',auth, anybody, questionController.acceptAnswer);
