@@ -17,12 +17,14 @@ const handleMultipartData = multer({ storage, limits: { fileSize: 1000000 * 10 }
 
 const answerController = {
     deleteFiles(files){
-        for(let i = 0; i < files.length; i++){
-            fs.unlink(`${appRoot}/${files[i].path}`, (err) => {
-                if(err){
-                    return next(CustomErrorHandler.serverError(err.message));
-                }
-            });
+        if(files){
+            for(let i = 0; i < files.length; i++){
+                fs.unlink(`${appRoot}/${files[i].path}`, (err) => {
+                    if(err){
+                        return next(CustomErrorHandler.serverError(err.message));
+                    }
+                });
+            }
         }
     },
 
